@@ -1,10 +1,12 @@
-# University scheduling system
+DATABASE_URL="mongodb://localhost:27017/anteallo?directConnection=true&appName=anteallo"
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+NEXTAUTH_SECRET="YOUR_GENERATED_SECRET_KEY_HERE"
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/ante-blackys-projects/v0-university-scheduling-system)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/9SgmY6u0roJ)
 
+# I think I got a working view - content of .env - change it to the mongodb-atlass link from before
+
+
+=======
 ## Overview
 
 This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
