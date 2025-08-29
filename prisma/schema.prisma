@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -37,7 +37,7 @@ enum PreferenceLevel {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   name      String
   role      UserRole
@@ -47,25 +47,25 @@ model User {
   // Role-specific relationships
   college    College?    @relation("CollegeUser")
   department Department? @relation("DepartmentUser")
-  
+
   // Teacher/Assistant relationships
-  teacherAssignments CourseAssignment[] @relation("TeacherAssignments")
+  teacherAssignments   CourseAssignment[] @relation("TeacherAssignments")
   assistantAssignments CourseAssignment[] @relation("AssistantAssignments")
-  preferences        Preference[]
+  preferences          Preference[]
 
   @@map("users")
 }
 
 model College {
-  id          String @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  code        String @unique
+  code        String   @unique
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user        User         @relation("CollegeUser", fields: [userId], references: [id])
-  userId      String       @unique
+  userId      String       @unique @db.ObjectId
   departments Department[]
   buildings   Building[]
   timeSlots   TimeSlot[]
@@ -74,17 +74,17 @@ model College {
 }
 
 model Department {
-  id          String @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  code        String @unique
+  code        String   @unique
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   college   College @relation(fields: [collegeId], references: [id])
-  collegeId String
+  collegeId String  @db.ObjectId
   user      User    @relation("DepartmentUser", fields: [userId], references: [id])
-  userId    String  @unique
+  userId    String  @unique @db.ObjectId
 
   programs Program[]
   courses  Course[]
@@ -93,30 +93,30 @@ model Department {
 }
 
 model Program {
-  id          String @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  code        String @unique
+  code        String   @unique
   description String?
   duration    Int // in years
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   department   Department @relation(fields: [departmentId], references: [id])
-  departmentId String
+  departmentId String     @db.ObjectId
   batches      Batch[]
 
   @@map("programs")
 }
 
 model Batch {
-  id        String @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   year      Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program   Program @relation(fields: [programId], references: [id])
-  programId String
+  program   Program   @relation(fields: [programId], references: [id])
+  programId String    @db.ObjectId
   sections  Section[]
 
   @@unique([programId, year])
@@ -124,15 +124,15 @@ model Batch {
 }
 
 model Section {
-  id        String @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   strength  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  batch   Batch  @relation(fields: [batchId], references: [id])
-  batchId String
-  groups  Group[]
+  batch             Batch              @relation(fields: [batchId], references: [id])
+  batchId           String             @db.ObjectId
+  groups            Group[]
   courseAssignments CourseAssignment[]
 
   @@unique([batchId, name])
@@ -140,14 +140,14 @@ model Section {
 }
 
 model Group {
-  id        String @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   size      Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  section   Section @relation(fields: [sectionId], references: [id])
-  sectionId String
+  section           Section            @relation(fields: [sectionId], references: [id])
+  sectionId         String             @db.ObjectId
   courseAssignments CourseAssignment[]
 
   @@unique([sectionId, name])
@@ -155,11 +155,11 @@ model Group {
 }
 
 model Semester {
-  id        String @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   startDate DateTime
   endDate   DateTime
-  isActive  Boolean @default(false)
+  isActive  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -170,7 +170,7 @@ model Semester {
 }
 
 model Course {
-  id          String     @id @default(cuid())
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   code        String     @unique
   credits     Int
@@ -179,32 +179,32 @@ model Course {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  department   Department @relation(fields: [departmentId], references: [id])
-  departmentId String
+  department   Department         @relation(fields: [departmentId], references: [id])
+  departmentId String             @db.ObjectId
   assignments  CourseAssignment[]
 
   @@map("courses")
 }
 
 model CourseAssignment {
-  id        String @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  course     Course    @relation(fields: [courseId], references: [id])
-  courseId   String
-  semester   Semester  @relation(fields: [semesterId], references: [id])
-  semesterId String
-  section    Section?  @relation(fields: [sectionId], references: [id])
-  sectionId  String?
-  group      Group?    @relation(fields: [groupId], references: [id])
-  groupId    String?
+  course     Course   @relation(fields: [courseId], references: [id])
+  courseId   String   @db.ObjectId
+  semester   Semester @relation(fields: [semesterId], references: [id])
+  semesterId String   @db.ObjectId
+  section    Section? @relation(fields: [sectionId], references: [id])
+  sectionId  String?  @db.ObjectId
+  group      Group?   @relation(fields: [groupId], references: [id])
+  groupId    String?  @db.ObjectId
 
   // Teacher and Assistant assignments
   teacher     User?   @relation("TeacherAssignments", fields: [teacherId], references: [id])
-  teacherId   String?
+  teacherId   String? @db.ObjectId
   assistant   User?   @relation("AssistantAssignments", fields: [assistantId], references: [id])
-  assistantId String?
+  assistantId String? @db.ObjectId
 
   schedules Schedule[]
 
@@ -212,50 +212,50 @@ model CourseAssignment {
 }
 
 model Building {
-  id          String @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  code        String @unique
+  code        String   @unique
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   college   College @relation(fields: [collegeId], references: [id])
-  collegeId String
+  collegeId String  @db.ObjectId
   rooms     Room[]
 
   @@map("buildings")
 }
 
 model Room {
-  id          String @id @default(cuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  code        String @unique
+  code        String   @unique
   capacity    Int
   type        String? // Lab, Classroom, Auditorium, etc.
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  building   Building @relation(fields: [buildingId], references: [id])
-  buildingId String
-  schedules  Schedule[]
+  building    Building     @relation(fields: [buildingId], references: [id])
+  buildingId  String       @db.ObjectId
+  schedules   Schedule[]
   preferences Preference[]
 
   @@map("rooms")
 }
 
 model TimeSlot {
-  id        String @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   startTime String // Format: "HH:MM"
   endTime   String // Format: "HH:MM"
-  dayOfWeek Int    // 1-7 (Monday-Sunday)
+  dayOfWeek Int // 1-7 (Monday-Sunday)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  college   College @relation(fields: [collegeId], references: [id])
-  collegeId String
-  schedules Schedule[]
+  college     College      @relation(fields: [collegeId], references: [id])
+  collegeId   String       @db.ObjectId
+  schedules   Schedule[]
   preferences Preference[]
 
   @@unique([collegeId, startTime, endTime, dayOfWeek])
@@ -263,25 +263,25 @@ model TimeSlot {
 }
 
 model Schedule {
-  id        String @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   courseAssignment   CourseAssignment @relation(fields: [courseAssignmentId], references: [id])
-  courseAssignmentId String
+  courseAssignmentId String           @db.ObjectId
   timeSlot           TimeSlot         @relation(fields: [timeSlotId], references: [id])
-  timeSlotId         String
+  timeSlotId         String           @db.ObjectId
   room               Room             @relation(fields: [roomId], references: [id])
-  roomId             String
+  roomId             String           @db.ObjectId
   semester           Semester         @relation(fields: [semesterId], references: [id])
-  semesterId         String
+  semesterId         String           @db.ObjectId
 
   @@unique([timeSlotId, roomId, semesterId])
   @@map("schedules")
 }
 
 model Preference {
-  id          String          @id @default(cuid())
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
   type        PreferenceType
   level       PreferenceLevel
   description String?
@@ -289,11 +289,11 @@ model Preference {
   updatedAt   DateTime        @updatedAt
 
   user       User      @relation(fields: [userId], references: [id])
-  userId     String
+  userId     String    @db.ObjectId
   timeSlot   TimeSlot? @relation(fields: [timeSlotId], references: [id])
-  timeSlotId String?
+  timeSlotId String?   @db.ObjectId
   room       Room?     @relation(fields: [roomId], references: [id])
-  roomId     String?
+  roomId     String?   @db.ObjectId
 
   @@map("preferences")
 }
